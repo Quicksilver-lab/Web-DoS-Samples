@@ -1,0 +1,15 @@
+{
+  "name": "web-gui-samples",
+  "version": "1.0.0",
+  "description": "Collection of Web GUI DDoS Samples only Samples Not Realtime DDoS.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "Web-DoS-Samples"
+  },
+  "author": "QuickSilver",
+  "license": "ISC"
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar DOS Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        body {
+            background-color: #0a0f0f;
+            color: #00ff00;
+        }
+        .btn-custom {
+            background-color: #00ff00;
+            color: #0a0f0f;
+        }
+        .btn-custom:hover {
+            background-color: #00cc00;
+        }
+        .card-custom {
+            background-color: #001f1f;
+            color: #00ff00;
+        }
+        .header, .footer {
+            background-color: #001b1b;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Progress Bar DOS Simulator</h1>
+    </header>
+    
+    <div id="app" class="container mx-auto p-6">
+        <div class="card card-custom shadow-xl w-full max-w-md mx-auto">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold mb-4 text-center">Start Attack</h2>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label text-lg">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-bordered bg-gray-800 text-green-500">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="threadCount" class="label text-lg">Thread Count</label>
+                    <input type="number" id="threadCount" v-model.number="threadCount" class="input input-bordered bg-gray-800 text-green-500">
+                </div>
+                <button @click="startAttack" class="btn btn-custom btn-block">Start Attack</button>
+                <div class="mt-4">
+                    <h3 class="text-xl font-bold mb-2">Progress</h3>
+                    <div class="relative pt-1">
+                        <div class="flex mb-2 items-center justify-between text-xs font-medium text-gray-500">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="flex h-2 mb-4 overflow-hidden bg-gray-700 rounded">
+                            <div :style="{ width: progress + '%' }" class="flex flex-col justify-center text-center text-xs text-white bg-green-500"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-show="attackRunning" class="mt-6">
+            <h3 class="text-xl font-bold mb-2">Attack Progress</h3>
+            <div class="overflow-auto max-h-96 bg-gray-800 p-4 rounded-lg">
+                <ul>
+                    <li v-for="(message, index) in messages" :key="index" class="mb-2">{{ message }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 DOS Attack Simulator. All Rights Reserved.</p>
+        <p>Developed by Quicksilver.</p>
+    </footer>
+    
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    threadCount: 10,
+                    attackRunning: false,
+                    messages: [],
+                    progress: 0
+                };
+            },
+            methods: {
+                startAttack() {
+                    this.attackRunning = true;
+                    this.messages = [];
+                    this.progress = 0;
+                    this.sendMessage("Attack started!");
+                    this.runAttack();
+                },
+                sendMessage(message) {
+                    this.messages.push(message);
+                },
+                runAttack() {
+                    for (let i = 0; i < this.threadCount; i++) {
+                        setTimeout(() => {
+                            this.sendMessage(`Thread ${i + 1}: Sending request to ${this.targetUrl}`);
+                            fetch(this.targetUrl)
+                                .then(response => {
+                                    this.sendMessage(`Thread ${i + 1}: Request sent successfully!`);
+                                    this.updateProgress((i + 1) / this.threadCount * 100);
+                                })
+                                .catch(error => {
+                                    this.sendMessage(`Thread ${i + 1}: Error sending request: ${error}`);
+                                });
+                        }, i * 1000); 
+                    }
+                },
+                updateProgress(value) {
+                    this.progress = value;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

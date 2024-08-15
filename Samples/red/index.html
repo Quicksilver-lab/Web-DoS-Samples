@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced DOS Simulator Collection</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ff0000;
+        }
+        .header, .footer {
+            background-color: #000000;
+            color: #ff0000;
+        }
+        .card-custom {
+            background-color: #1a1a1a;
+            color: #ff0000;
+        }
+        .btn-custom {
+            background-color: #ff0000;
+            color: #000000;
+        }
+        .btn-custom:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Advanced DOS Simulator Collection</h1>
+    </header>
+    
+    <div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Sample 1 -->
+            <div class="card card-custom shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Basic Attack Simulator</h2>
+                <p>Simulates a basic DOS attack with simple request sending and logging.</p>
+                <a href="sample1.html" class="btn btn-custom">View Sample</a>
+            </div>
+            <!-- Sample 2 -->
+            <div class="card card-custom shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Advanced Attack with Retry</h2>
+                <p>Includes retry logic for failed requests and more detailed logging.</p>
+                <a href="sample2.html" class="btn btn-custom">View Sample</a>
+            </div>
+            <!-- Sample 3 -->
+            <div class="card card-custom shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Attack with Dynamic Graphs</h2>
+                <p>Real-time graph updates for monitoring attack progress and statistics.</p>
+                <a href="sample3.html" class="btn btn-custom">View Sample</a>
+            </div>
+            <!-- Sample 4 -->
+            <div class="card card-custom shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Rate-Limited Attack Simulator</h2>
+                <p>Simulates attacks with rate-limiting to avoid overwhelming the target.</p>
+                <a href="sample4.html" class="btn btn-custom">View Sample</a>
+            </div>
+            <!-- Sample 5 -->
+            <div class="card card-custom shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Distributed Attack Simulator</h2>
+                <p>Simulates a distributed attack using multiple simulated clients.</p>
+                <a href="sample5.html" class="btn btn-custom">View Sample</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 Advanced DOS Simulator Collection. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

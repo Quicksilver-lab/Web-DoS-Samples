@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select DDoS Simulation Theme</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .header, .footer {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .card-custom {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .btn-custom {
+            color: #000000;
+        }
+        .card-blue {
+            border-color: #00bfff;
+        }
+        .card-green {
+            border-color: #00ff00;
+        }
+        .card-red {
+            border-color: #ff0000;
+        }
+        .btn-blue {
+            background-color: #00bfff;
+        }
+        .btn-green {
+            background-color: #00ff00;
+        }
+        .btn-red {
+            background-color: #ff0000;
+        }
+        .btn-custom:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">DDoS Simulation Theme Selection</h1>
+        <p class="text-xl">Choose a theme to explore different DDoS simulation tools and samples.</p>
+    </header>
+
+    <div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Blue Themed Directory -->
+            <div class="card card-custom border-4 card-blue shadow-xl p-6 transition-transform transform hover:scale-105">
+                <h2 class="text-2xl font-bold mb-4 text-blue-500">Blue Themed Tools</h2>
+                <p class="mb-4">Explore a collection of DDoS simulation tools and samples with a blue and black theme. This directory features various advanced functions and detailed visualizations.</p>
+                <a href="Samples/blue/index.html" class="btn btn-blue btn-block">Explore Blue Tools</a>
+            </div>
+
+            <!-- Green Themed Directory -->
+            <div class="card card-custom border-4 card-green shadow-xl p-6 transition-transform transform hover:scale-105">
+                <h2 class="text-2xl font-bold mb-4 text-green-500">Green Themed Tools</h2>
+                <p class="mb-4">Discover DDoS simulation tools and samples with a green and black theme. This directory offers a range of functionalities and interactive elements.</p>
+                <a href="Samples/index.html" class="btn btn-green btn-block">Explore Green Tools</a>
+            </div>
+
+            <!-- Red Themed Directory -->
+            <div class="card card-custom border-4 card-red shadow-xl p-6 transition-transform transform hover:scale-105">
+                <h2 class="text-2xl font-bold mb-4 text-red-500">Red Themed Tools</h2>
+                <p class="mb-4">Check out the DDoS simulation tools and samples with a striking red and black theme. This directory features comprehensive functionalities and detailed analytics.</p>
+                <a href="Samples/red/index.html" class="btn btn-red btn-block">Explore Red Tools</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer p-4 text-center mt-6">
+        <p>© 2024 DDoS Simulation Themes. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

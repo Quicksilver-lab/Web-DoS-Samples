@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack with Dynamic Graphs</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ff0000;
+        }
+        .header, .footer {
+            background-color: #000000;
+            color: #ff0000;
+        }
+        .card-custom {
+            background-color: #1a1a1a;
+            color: #ff0000;
+        }
+        .btn-custom {
+            background-color: #ff0000;
+            color: #000000;
+        }
+        .btn-custom:hover {
+            background-color: #cc0000;
+        }
+        .input-custom {
+            background-color: #1a1a1a;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 0 auto;
+        }
+        .log-entry {
+            background-color: #2a2a2a;
+            color: #ff0000;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Attack with Dynamic Graphs</h1>
+    </header>
+    
+    <div id="app" class="container mx-auto p-6">
+        <div class="card card-custom shadow-xl w-full max-w-4xl mx-auto p-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-bold mb-4 text-center">Start Attack</h2>
+                <div v-if="errorMessage" class="error mb-4 text-center">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label text-lg">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-custom" placeholder="e.g., http://example.com">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="threadCount" class="label text-lg">Thread Count</label>
+                    <input type="number" id="threadCount" v-model.number="threadCount" class="input input-custom" min="1">
+                </div>
+                <button @click="startAttack" class="btn btn-custom btn-block mb-2">Start Attack</button>
+                <button @click="stopAttack" v-if="attackRunning" class="btn btn-custom btn-block mb-2">Stop Attack</button>
+                
+                <div v-show="attackRunning" class="mt-6">
+                    <h3 class="text-xl font-bold mb-2">Logs</h3>
+                    <div class="log-container">
+                        <div v-for="(log, index) in logs" :key="index" class="log-entry">{{ log }}</div>
+                    </div>
+                    <div class="chart-container mt-6">
+                        <canvas id="attackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 Attack with Dynamic Graphs. All Rights Reserved.</p>
+    </footer>
+    
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    threadCount: 10,
+                    attackRunning: false,
+                    logs: [],
+                    errorMessage: '',
+                    attackData: {
+                        labels: [],
+                        values: []
+                    }
+                };
+            },
+            methods: {
+                startAttack() {
+                    if (!this.validateInputs()) return;
+                    
+                    this.attackRunning = true;
+                    this.logs = [];
+                    this.errorMessage = '';
+                    
+                    this.sendMessage("Attack started!");
+                    this.runAttack();
+                },
+                stopAttack() {
+                    this.attackRunning = false;
+                    this.sendMessage("Attack stopped!");
+                },
+                validateInputs() {
+                    if (!this.targetUrl || !this.targetUrl.startsWith('http')) {
+                        this.errorMessage = 'Please enter a valid URL starting with "http".';
+                        return false;
+                    }
+                    if (this.threadCount <= 0) {
+                        this.errorMessage = 'Thread count must be greater than 0.';
+                        return false;
+                    }
+                    return true;
+                },
+                sendMessage(message) {
+                    this.logs.push(message);
+                    if (this.logs.length > 100) {
+                        this.logs.shift(); // Keep log size manageable
+                    }
+                },
+                runAttack() {
+                    const chart = this.createChart();
+                    const intervalId = setInterval(() => {
+                        if (!this.attackRunning) {
+                            clearInterval(intervalId);
+                            return;
+                        }
+                        for (let i = 0; i < this.threadCount; i++) {
+                            setTimeout(() => {
+                                this.sendRequest().then(responseTime => {
+                                    this.updateChart(responseTime, chart);
+                                });
+                            }, i * 100);
+                        }
+                    }, 1000);
+                },
+                async sendRequest() {
+                    const start = performance.now();
+                    try {
+                        const response = await fetch(this.targetUrl, { method: 'GET' });
+                        const end = performance.now();
+                        if (response.ok) {
+                            this.sendMessage(`Request sent to ${this.targetUrl}`);
+                            return end - start;
+                        } else {
+                            this.sendMessage(`Error: ${response.status} ${response.statusText}`);
+                            return null;
+                        }
+                    } catch (error) {
+                        this.sendMessage(`Network error: ${error.message}`);
+                        return null;
+                    }
+                },
+                createChart() {
+                    const ctx = document.getElementById('attackChart').getContext('2d');
+                    return new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: this.attackData.labels,
+                            datasets: [{
+                                label: 'Response Time (ms)',
+                                data: this.attackData.values,
+                                borderColor: '#ff0000',
+                                backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    ticks: {
+                                        color: '#ff0000'
+                                    }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#ff0000'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                updateChart(responseTime, chart) {
+                    if (responseTime !== null) {
+                        const now = new Date().toLocaleTimeString();
+                        this.attackData.labels.push(now);
+                        this.attackData.values.push(responseTime);
+                        chart.update();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

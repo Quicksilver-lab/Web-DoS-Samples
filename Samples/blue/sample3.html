@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Request Logger</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #1e90ff;
+        }
+        .header, .footer {
+            background-color: #000000;
+            color: #1e90ff;
+        }
+        .card-custom {
+            background-color: #1a1a1a;
+            color: #1e90ff;
+        }
+        .btn-custom {
+            background-color: #1e90ff;
+            color: #000000;
+        }
+        .btn-custom:hover {
+            background-color: #4682b4;
+        }
+        .input-custom {
+            background-color: #1a1a1a;
+            color: #1e90ff;
+            border: 1px solid #1e90ff;
+        }
+        .log-entry {
+            background-color: #2a2a2a;
+            color: #1e90ff;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .chart-container {
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Advanced Request Logger</h1>
+    </header>
+    
+    <div id="app" class="container mx-auto p-6">
+        <div class="card card-custom shadow-xl w-full max-w-md mx-auto p-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-bold mb-4 text-center">Request Logger</h2>
+                <div v-if="errorMessage" class="error mb-4 text-center">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label text-lg">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-custom" placeholder="e.g., http://example.com">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="requestCount" class="label text-lg">Number of Requests</label>
+                    <input type="number" id="requestCount" v-model.number="requestCount" class="input input-custom" min="1">
+                </div>
+                <button @click="startLogging" class="btn btn-custom btn-block mb-2">Start Logging</button>
+                
+                <div v-show="logging" class="mt-6">
+                    <h3 class="text-xl font-bold mb-2">Logs</h3>
+                    <div class="log-container">
+                        <div v-for="(log, index) in logs" :key="index" class="log-entry">{{ log }}</div>
+                    </div>
+                    <div class="chart-container mt-6">
+                        <canvas id="requestChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 Advanced Request Logger. All Rights Reserved.</p>
+    </footer>
+    
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    requestCount: 10,
+                    logging: false,
+                    logs: [],
+                    errorMessage: '',
+                    requestData: {
+                        labels: [],
+                        values: []
+                    }
+                };
+            },
+            methods: {
+                startLogging() {
+                    if (!this.validateInputs()) return;
+                    
+                    this.logging = true;
+                    this.logs = [];
+                    this.errorMessage = '';
+                    
+                    this.sendMessage("Logging started!");
+                    this.runLogging();
+                },
+                validateInputs() {
+                    if (!this.targetUrl || !this.targetUrl.startsWith('http')) {
+                        this.errorMessage = 'Please enter a valid URL starting with "http".';
+                        return false;
+                    }
+                    if (this.requestCount <= 0) {
+                        this.errorMessage = 'Request count must be greater than 0.';
+                        return false;
+                    }
+                    return true;
+                },
+                sendMessage(message) {
+                    this.logs.push(message);
+                    if (this.logs.length > 100) {
+                        this.logs.shift(); // Keep log size manageable
+                    }
+                },
+                runLogging() {
+                    const chart = this.createChart();
+                    const intervalId = setInterval(() => {
+                        if (!this.logging) {
+                            clearInterval(intervalId);
+                            return;
+                        }
+                        for (let i = 0; i < this.requestCount; i++) {
+                            setTimeout(() => {
+                                this.sendRequest().then(responseTime => {
+                                    this.updateChart(responseTime, chart);
+                                });
+                            }, i * 100);
+                        }
+                    }, 1000);
+                },
+                async sendRequest() {
+                    const start = performance.now();
+                    try {
+                        const response = await fetch(this.targetUrl, { method: 'GET' });
+                        const end = performance.now();
+                        if (response.ok) {
+                            this.sendMessage(`Request sent to ${this.targetUrl}`);
+                            return end - start;
+                        } else {
+                            this.sendMessage(`Error: ${response.status} ${response.statusText}`);
+                            return null;
+                        }
+                    } catch (error) {
+                        this.sendMessage(`Network error: ${error.message}`);
+                        return null;
+                    }
+                },
+                createChart() {
+                    const ctx = document.getElementById('requestChart').getContext('2d');
+                    return new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: this.requestData.labels,
+                            datasets: [{
+                                label: 'Response Time (ms)',
+                                data: this.requestData.values,
+                                borderColor: '#1e90ff',
+                                backgroundColor: 'rgba(30, 144, 255, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    ticks: {
+                                        color: '#1e90ff'
+                                    }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#1e90ff'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                updateChart(responseTime, chart) {
+                    if (responseTime !== null) {
+                        const now = new Date().toLocaleTimeString();
+                        this.requestData.labels.push(now);
+                        this.requestData.values.push(responseTime);
+                        chart.update();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

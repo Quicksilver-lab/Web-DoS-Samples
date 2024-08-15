@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Ping Simulation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #1e90ff;
+        }
+        .header, .footer {
+            background-color: #000000;
+            color: #1e90ff;
+        }
+        .card-custom {
+            background-color: #1a1a1a;
+            color: #1e90ff;
+        }
+        .btn-custom {
+            background-color: #1e90ff;
+            color: #000000;
+        }
+        .btn-custom:hover {
+            background-color: #4682b4;
+        }
+        .input-custom {
+            background-color: #1a1a1a;
+            color: #1e90ff;
+            border: 1px solid #1e90ff;
+        }
+        .log-entry {
+            background-color: #2a2a2a;
+            color: #1e90ff;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header p-6 text-center">
+        <h1 class="text-4xl font-bold">Enhanced Ping Simulation</h1>
+    </header>
+    
+    <div id="app" class="container mx-auto p-6">
+        <div class="card card-custom shadow-xl w-full max-w-md mx-auto p-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-bold mb-4 text-center">Ping Simulation</h2>
+                <div v-if="errorMessage" class="error mb-4 text-center">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label text-lg">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-custom" placeholder="e.g., http://example.com">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="pingCount" class="label text-lg">Ping Count</label>
+                    <input type="number" id="pingCount" v-model.number="pingCount" class="input input-custom" min="1">
+                </div>
+                <button @click="startPing" class="btn btn-custom btn-block mb-2">Start Ping</button>
+                
+                <div v-show="pingRunning" class="mt-6">
+                    <h3 class="text-xl font-bold mb-2">Logs</h3>
+                    <div class="log-container">
+                        <div v-for="(log, index) in logs" :key="index" class="log-entry">{{ log }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer p-4 text-center">
+        <p>© 2024 Enhanced Ping Simulation. All Rights Reserved.</p>
+    </footer>
+    
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    pingCount: 10,
+                    pingRunning: false,
+                    logs: [],
+                    errorMessage: ''
+                };
+            },
+            methods: {
+                startPing() {
+                    if (!this.validateInputs()) return;
+                    
+                    this.pingRunning = true;
+                    this.logs = [];
+                    this.errorMessage = '';
+                    
+                    this.sendMessage("Ping simulation started!");
+                    this.runPing();
+                },
+                validateInputs() {
+                    if (!this.targetUrl || !this.targetUrl.startsWith('http')) {
+                        this.errorMessage = 'Please enter a valid URL starting with "http".';
+                        return false;
+                    }
+                    if (this.pingCount <= 0) {
+                        this.errorMessage = 'Ping count must be greater than 0.';
+                        return false;
+                    }
+                    return true;
+                },
+                sendMessage(message) {
+                    this.logs.push(message);
+                    if (this.logs.length > 100) {
+                        this.logs.shift(); // Keep log size manageable
+                    }
+                },
+                runPing() {
+                    const intervalId = setInterval(() => {
+                        if (!this.pingRunning) {
+                            clearInterval(intervalId);
+                            return;
+                        }
+                        for (let i = 0; i < this.pingCount; i++) {
+                            this.sendRequest();
+                        }
+                    }, 1000);
+                },
+                async sendRequest() {
+                    const start = performance.now();
+                    try {
+                        const response = await fetch(this.targetUrl, { method: 'GET' });
+                        const end = performance.now();
+                        if (response.ok) {
+                            this.sendMessage(`Ping to ${this.targetUrl} took ${end - start} ms`);
+                        } else {
+                            this.sendMessage(`Error: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        this.sendMessage(`Network error: ${error.message}`);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

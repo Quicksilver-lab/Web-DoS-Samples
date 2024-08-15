@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOS Attack Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DaisyUI CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.6/dist/full.css" rel="stylesheet" type="text/css" />
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Material Icons CDN -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-base-200">
+    <div id="app" class="container mx-auto my-8">
+        <div class="card bg-base-100 shadow-xl w-full max-w-md">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold mb-4 text-center">DOS Attack Simulator</h2>
+                <div class="form-control mb-4">
+                    <label for="targetUrl" class="label">Target URL</label>
+                    <input type="text" id="targetUrl" v-model="targetUrl" class="input input-bordered" placeholder="Enter target URL">
+                </div>
+                <div class="form-control mb-4">
+                    <label for="threadCount" class="label">Thread Count</label>
+                    <input type="number" id="threadCount" v-model.number="threadCount" class="input input-bordered" placeholder="Enter number of threads">
+                </div>
+                <div class="flex justify-between mt-4">
+                    <button @click="startAttack" :disabled="attackRunning" class="btn btn-primary w-1/2 mr-2">Start Attack</button>
+                    <button @click="stopAttack" :disabled="!attackRunning" class="btn btn-error w-1/2">Stop Attack</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attack Progress Section -->
+        <div v-show="attackRunning || messages.length" class="mt-6">
+            <h3 class="text-xl font-bold mb-2">Attack Progress</h3>
+            <progress class="progress progress-primary w-full mb-4" :value="progress" max="100"></progress>
+            <div class="overflow-auto max-h-96 bg-base-100 p-4 rounded-lg shadow-inner">
+                <ul>
+                    <li v-for="(message, index) in messages" :key="index" class="mb-2">{{ message }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    targetUrl: '',
+                    threadCount: 10,
+                    attackRunning: false,
+                    messages: [],
+                    progress: 0,
+                    intervalId: null
+                };
+            },
+            methods: {
+                startAttack() {
+                    if (!this.targetUrl) {
+                        alert("Please enter a valid URL!");
+                        return;
+                    }
+                    this.attackRunning = true;
+                    this.messages = [];
+                    this.progress = 0;
+                    this.sendMessage("Attack started!");
+                    this.runAttack();
+                    this.intervalId = setInterval(this.updateProgress, 1000);
+                },
+                stopAttack() {
+                    clearInterval(this.intervalId);
+                    this.attackRunning = false;
+                    this.sendMessage("Attack stopped.");
+                },
+                sendMessage(message) {
+                    this.messages.push(message);
+                },
+                runAttack() {
+                    for (let i = 0; i < this.threadCount; i++) {
+                        setTimeout(() => {
+                            if (!this.attackRunning) return;
+                            this.sendMessage(`Thread ${i + 1}: Sending request to ${this.targetUrl}`);
+                            fetch(this.targetUrl)
+                                .then(response => {
+                                    this.sendMessage(`Thread ${i + 1}: Request sent successfully!`);
+                                })
+                                .catch(error => {
+                                    this.sendMessage(`Thread ${i + 1}: Error sending request: ${error}`);
+                                });
+                        }, i * 1000);
+                    }
+                },
+                updateProgress() {
+                    if (this.progress >= 100) {
+                        clearInterval(this.intervalId);
+                        this.attackRunning = false;
+                        this.sendMessage("Attack completed!");
+                    } else {
+                        this.progress += (100 / this.threadCount);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
